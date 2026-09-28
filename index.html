@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexora Portal - AI-Powered Mock Interview Platform</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        },
+                        cyan: {
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0284c7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06b6d4;
+        }
+
+        /* Avatar CSS Animations */
+        @keyframes avatarPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.4); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 20px rgba(6, 182, 212, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+        }
+
+        @keyframes speakingRipple {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.08); opacity: 0.3; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        @keyframes waveBar {
+            0%, 100% { height: 8px; }
+            50% { height: 36px; }
+        }
+
+        .avatar-speaking {
+            animation: avatarPulse 2s infinite ease-in-out;
+            border-color: #06b6d4 !important;
+        }
+
+        .avatar-listening {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+        }
+
+        .speaking-ring {
+            position: absolute;
+            inset: -12px;
+            border-radius: 9999px;
+            border: 2px solid #06b6d4;
+            animation: speakingRipple 1.5s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        /* Audio Wave Visualizer */
+        .wave-bar {
+            width: 4px;
+            background-color: #06b6d4;
+            border-radius: 9999px;
+            display: inline-block;
+        }
+
+        .wave-active .bar-1 { animation: waveBar 1.2s infinite ease-in-out 0.1s; }
+        .wave-active .bar-2 { animation: waveBar 1.2s infinite ease-in-out 0.3s; }
+        .wave-active .bar-3 { animation: waveBar 1.2s infinite ease-in-out 0.2s; }
+        .wave-active .bar-4 { animation: waveBar 1.2s infinite ease-in-out 0.4s; }
+        .wave-active .bar-5 { animation: waveBar 1.2s infinite ease-in-out 0.15s; }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Printable area styling for report */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #reportModal, #reportModal * {
+                visibility: visible;
+            }
+            #reportModal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+                color: black;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-navy-950 text-slate-100 flex flex-col min-h-screen">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800 px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid me-0 fa-brain text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-wide text-white flex items-center gap-2">
+                        NEXORA <span class="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/30 font-semibold">PORTAL</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">AI-Powered Mock Recruitment Platform</p>
+                </div>
+            </div>
+
+            <!-- View Switcher Tabs -->
+            <div class="flex items-center bg-navy-900/80 p-1 rounded-xl border border-slate-800">
+                <button id="navAdminBtn" onclick="switchView('admin')" class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 bg-cyan-600 text-white shadow-md">
+                    <i class="fa-solid fa-user-shield text-xs"></i>
+                    <span>Admin Dashboard</span>
+                </button>
+                <button id="navCandidateBtn" onclick="switchView('candidate')" class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-video text-xs"></i>
+                    <span>Candidate Interview Room</span>
+                </button>
+            </div>
+
+            <!-- Action Controls & Status -->
+            <div class="flex items-center gap-3">
+                <div class="hidden lg:flex items-center gap-2 text-xs bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-slate-300">System Ready</span>
+                </div>
+                <button onclick="resetDemoData()" title="Reset to Sample Demo Data" class="px-3 py-1.5 text-xs text-slate-400 hover:text-cyan-400 bg-navy-800 hover:bg-slate-800 border border-slate-700 rounded-lg transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    <span class="hidden sm:inline">Reset Demo Data</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: ADMIN DASHBOARD                    -->
+        <!-- ========================================== -->
+        <section id="adminView" class="space-y-6">
+            
+            <!-- Prototype Banner Disclaimer -->
+            <div class="bg-gradient-to-r from-cyan-950/40 via-navy-900 to-navy-950 border border-cyan-500/30 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+                <div class="flex items-start gap-3.5">
+                    <div class="p-2.5 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-cyan-400">
+                        <i class="fa-solid fa-shield-halved text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-semibold text-slate-100 flex items-center gap-2">
+                            Administrator Management Portal
+                            <span class="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded font-normal">Prototype Mode</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Schedule candidate interviews, send invitation templates, track live progress, and review scored response transcripts.
+                            <span class="text-slate-500 block mt-0.5"><i class="fa-solid fa-circle-info me-1"></i>Data persisted locally in browser localStorage. Disclaimers: Practice evaluation tool only.</span>
+                        </p>
+                    </div>
+                </div>
+                <button onclick="openScheduleModal()" class="w-full md:w-auto px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium text-sm rounded-xl transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 shrink-0">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                    <span>Schedule New Interview</span>
+                </button>
+            </div>
+
+            <!-- Stats Overview Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">Total Scheduled</span>
+                        <i class="fa-solid fa-calendar-days text-cyan-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-white" id="statTotal">0</div>
+                    <span class="text-xs text-slate-500 mt-1 block">Active mock candidates</span>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">In Progress</span>
+                        <i class="fa-solid fa-spinner text-amber-400 animate-spin"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-amber-400" id="statInProgress">0</div>
+                    <span class="text-xs text-slate-500 mt-1 block">Live candidate room active</span>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">Completed</span>
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-emerald-400" id="statCompleted">0</div>
+                    <span class="text-xs text-slate-500 mt-1 block">Reports generated</span>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">Avg Practice Score</span>
+                        <i class="fa-solid fa-chart-line text-cyan-400"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-cyan-300" id="statAvgScore">0/100</div>
+                    <span class="text-xs text-slate-500 mt-1 block">Estimated keyword & completeness rating</span>
+                </div>
+            </div>
+
+            <!-- Scheduled Interviews Table Card -->
+            <div class="glass-panel rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+                <div class="p-5 border-b border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-semibold text-lg text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-cyan-400"></i>
+                            Mock Interview Directory
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Manage invitations, copy magic links, and review candidate answers.</p>
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <div class="relative w-full sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                            <input type="text" id="searchInput" oninput="renderAdminTable()" placeholder="Search candidate or role..." class="w-full bg-navy-900 border border-slate-700/80 text-xs rounded-xl pl-8 pr-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-navy-900/90 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="py-3.5 px-4 font-semibold">Candidate</th>
+                                <th class="py-3.5 px-4 font-semibold">Job Role</th>
+                                <th class="py-3.5 px-4 font-semibold">Schedule (IST)</th>
+                                <th class="py-3.5 px-4 font-semibold">Status</th>
+                                <th class="py-3.5 px-4 font-semibold">Practice Score</th>
+                                <th class="py-3.5 px-4 font-semibold text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="interviewsTableBody" class="divide-y divide-slate-800/60 text-slate-300 text-xs sm:text-sm">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table Empty State -->
+                <div id="emptyTableState" class="hidden p-12 text-center">
+                    <i class="fa-solid fa-folder-open text-4xl text-slate-600 mb-3"></i>
+                    <p class="text-slate-400 font-medium">No interview records found.</p>
+                    <p class="text-xs text-slate-500 mt-1">Schedule a new mock session or click "Reset Demo Data".</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: CANDIDATE INTERVIEW ROOM           -->
+        <!-- ========================================== -->
+        <section id="candidateView" class="hidden space-y-6">
+
+            <!-- CANDIDATE SCREEN 1: WELCOME / WAITING / MIC CHECK -->
+            <div id="candidateWelcomeScreen" class="max-w-2xl mx-auto glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-2xl">
+                
+                <!-- Notice Banner -->
+                <div class="bg-cyan-950/40 border border-cyan-500/30 rounded-xl p-3.5 mb-6 flex items-center gap-3">
+                    <i class="fa-solid fa-circle-info text-cyan-400 text-lg shrink-0"></i>
+                    <p class="text-xs text-slate-300">
+                        <strong>Practice Mode Notice:</strong> This platform is a mock recruitment portal powered by speech recognition and voice synthesis. All feedback provided is for practice purposes.
+                    </p>
+                </div>
+
+                <div class="text-center space-y-3 mb-8">
+                    <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mx-auto text-cyan-400 text-2xl mb-2 shadow-lg shadow-cyan-500/10">
+                        <i class="fa-solid fa-id-badge"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white tracking-wide" id="welcomeCandidateName">Welcome, Candidate</h2>
+                    <p class="text-sm text-cyan-400 font-medium" id="welcomeJobRole">Position: Web Developer</p>
+                    <div class="inline-flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-full text-xs text-slate-300 border border-slate-700">
+                        <i class="fa-regular fa-clock text-cyan-400"></i>
+                        <span id="welcomeScheduleTime">Scheduled: Today 8:00 AM - 11:00 AM IST</span>
+                    </div>
+                </div>
+
+                <!-- Session Instructions Checklist -->
+                <div class="space-y-4 mb-8">
+                    <h3 class="text-xs uppercase font-semibold tracking-wider text-slate-400 border-b border-slate-800 pb-2">Pre-Interview Preparation Checklist</h3>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="bg-navy-900/80 p-3 rounded-xl border border-slate-800 flex items-center gap-2.5">
+                            <i class="fa-solid fa-volume-high text-cyan-400"></i>
+                            <span class="text-slate-300">Quiet Environment Required</span>
+                        </div>
+                        <div class="bg-navy-900/80 p-3 rounded-xl border border-slate-800 flex items-center gap-2.5">
+                            <i class="fa-solid fa-microphone text-emerald-400"></i>
+                            <span class="text-slate-300">Microphone Access Needed</span>
+                        </div>
+                        <div class="bg-navy-900/80 p-3 rounded-xl border border-slate-800 flex items-center gap-2.5">
+                            <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i>
+                            <span class="text-slate-300">~15-20 Min Estimated Duration</span>
+                        </div>
+                        <div class="bg-navy-900/80 p-3 rounded-xl border border-slate-800 flex items-center gap-2.5">
+                            <i class="fa-solid fa-keyboard text-amber-400"></i>
+                            <span class="text-slate-300">Manual Text Fallback Included</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mic Test Permission Area -->
+                <div class="bg-navy-900/90 border border-slate-800 p-4 rounded-xl mb-8 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-cyan-400"></i> Hardware & Speech Check
+                        </span>
+                        <span id="micStatusBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Not Tested</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Click below to test Speech Recognition capability in your browser (Chrome/Edge recommended).</p>
+                    
+                    <div class="flex items-center gap-3 pt-1">
+                        <button id="testMicBtn" onclick="testMicrophone()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 rounded-lg border border-slate-700 transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-microphone-lines"></i>
+                            <span>Test Mic & Voice Recognition</span>
+                        </button>
+                        <span id="micTestResultText" class="text-xs text-slate-400 italic"></span>
+                    </div>
+                </div>
+
+                <!-- Schedule Bypass Notice / Enter Button -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                    <div class="text-xs text-slate-500 flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock text-amber-500"></i>
+                        <span>Default window: 8:00 AM - 11:00 AM IST</span>
+                    </div>
+                    <button id="startInterviewBtn" onclick="enterInterviewRoom()" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold text-sm rounded-xl transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2">
+                        <span>Enter Interview Room</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CANDIDATE SCREEN 2: ACTIVE LIVE INTERVIEW ROOM -->
+            <div id="candidateLiveRoom" class="hidden space-y-6">
+
+                <!-- Room Header Status Bar -->
+                <div class="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></div>
+                        <div>
+                            <span class="text-xs text-slate-400 uppercase tracking-wider block font-medium">Session Live</span>
+                            <span id="liveCandidateHeaderName" class="text-sm font-semibold text-white">Candidate Name</span>
+                        </div>
+                    </div>
+
+                    <!-- Interview Stages Indicator -->
+                    <div class="hidden md:flex items-center gap-1.5 text-xs">
+                        <span id="stageBadge1" class="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-medium">1. Intro</span>
+                        <i class="fa-solid fa-angle-right text-slate-600"></i>
+                        <span id="stageBadge2" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-500 font-medium">2. HR</span>
+                        <i class="fa-solid fa-angle-right text-slate-600"></i>
+                        <span id="stageBadge3" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-500 font-medium">3. Tech</span>
+                        <i class="fa-solid fa-angle-right text-slate-600"></i>
+                        <span id="stageBadge4" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-500 font-medium">4. Problem Solving</span>
+                        <i class="fa-solid fa-angle-right text-slate-600"></i>
+                        <span id="stageBadge5" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-500 font-medium">5. Closing</span>
+                    </div>
+
+                    <!-- Timer & Question Counter -->
+                    <div class="flex items-center gap-4">
+                        <div class="bg-navy-900 border border-slate-800 px-3 py-1.5 rounded-xl text-right">
+                            <span class="text-[10px] text-slate-400 block uppercase tracking-wider">Elapsed Time</span>
+                            <span id="sessionTimerText" class="text-sm font-mono font-bold text-cyan-400">00:00</span>
+                        </div>
+                        <button onclick="confirmEndInterview()" class="px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-phone-slash"></i>
+                            <span>End Room</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Interview Stage: Human-Like AI Avatar & Stage Display -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                    <!-- Left / Center: Interactive AI Avatar Card -->
+                    <div class="lg:col-span-7 glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col items-center justify-between min-h-[420px] relative overflow-hidden">
+                        
+                        <!-- Top Avatar Info -->
+                        <div class="w-full flex items-center justify-between z-10">
+                            <div class="flex items-center gap-2 bg-navy-900/80 border border-slate-800 px-3 py-1.5 rounded-xl">
+                                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                                <span class="text-xs font-semibold text-slate-200">Alex Morgan</span>
+                                <span class="text-[10px] text-slate-400">(AI Hiring Manager)</span>
+                            </div>
+                            <button id="toggleCaptionsBtn" onclick="toggleCaptions()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 transition-colors">
+                                <i class="fa-solid fa-closed-captioning me-1"></i>
+                                <span id="captionsBtnText">Captions: ON</span>
+                            </button>
+                        </div>
+
+                        <!-- Center Animated SVG Avatar -->
+                        <div class="my-8 relative flex flex-col items-center">
+                            <div id="speakingRing" class="speaking-ring hidden"></div>
+                            <div id="avatarContainer" class="w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-slate-900 border-4 border-slate-700 p-2 relative shadow-2xl transition-all duration-300 flex items-center justify-center">
+                                
+                                <!-- Modern Humanlike SVG Avatar Graphic -->
+                                <svg class="w-full h-full text-slate-300" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="50" cy="50" r="45" fill="#1e293b"/>
+                                    <!-- Shoulders / Suit -->
+                                    <path d="M22 82C22 68 34 60 50 60C66 60 78 68 78 82V90H22V82Z" fill="#334155"/>
+                                    <!-- Shirt Collar -->
+                                    <path d="M42 60L50 72L58 60" stroke="#06b6d4" stroke-width="2"/>
+                                    <!-- Neck -->
+                                    <rect x="44" y="48" width="12" height="15" fill="#f8fafc" opacity="0.8" rx="2"/>
+                                    <!-- Head -->
+                                    <ellipse cx="50" cy="38" rx="18" ry="20" fill="#f1f5f9"/>
+                                    <!-- Hair -->
+                                    <path d="M30 35C30 24 38 18 50 18C62 18 70 24 70 35C70 28 62 22 50 22C38 22 30 28 30 35Z" fill="#0f172a"/>
+                                    <!-- Glasses -->
+                                    <rect x="36" y="32" width="11" height="8" rx="2" stroke="#0284c7" stroke-width="1.5" fill="none"/>
+                                    <rect x="53" y="32" width="11" height="8" rx="2" stroke="#0284c7" stroke-width="1.5" fill="none"/>
+                                    <line x1="47" y1="36" x2="53" y2="36" stroke="#0284c7" stroke-width="1.5"/>
+                                    <!-- Eyes -->
+                                    <circle cx="41.5" cy="36" r="2" fill="#0f172a"/>
+                                    <circle cx="58.5" cy="36" r="2" fill="#0f172a"/>
+                                    <!-- Mouth (dynamic animation node) -->
+                                    <path id="avatarMouth" d="M43 47 Q 50 50 57 47" stroke="#334155" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                </svg>
+                            </div>
+
+                            <!-- Audio Wave Animation Bar Container -->
+                            <div id="audioWaveContainer" class="flex items-center gap-1.5 h-10 mt-4 opacity-50 transition-opacity">
+                                <span class="wave-bar bar-1"></span>
+                                <span class="wave-bar bar-2"></span>
+                                <span class="wave-bar bar-3"></span>
+                                <span class="wave-bar bar-4"></span>
+                                <span class="wave-bar bar-5"></span>
+                            </div>
+
+                            <!-- Live Interviewer Status Badge -->
+                            <div id="interviewerStatusText" class="text-xs text-cyan-400 font-medium mt-1 bg-navy-900/90 px-3 py-1 rounded-full border border-cyan-500/30">
+                                Alex Morgan is ready...
+                            </div>
+                        </div>
+
+                        <!-- Live Question Audio Subtitle / Captions Bar -->
+                        <div id="captionBox" class="w-full bg-navy-900/90 border border-slate-800 p-4 rounded-xl z-10">
+                            <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                                <span class="uppercase tracking-wider font-semibold text-cyan-400">Interviewer Question</span>
+                                <button onclick="repeatCurrentQuestion()" class="text-xs text-slate-400 hover:text-cyan-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-volume-high text-xs"></i> Repeat Question
+                                </button>
+                            </div>
+                            <p id="currentQuestionText" class="text-sm font-medium text-slate-100 leading-relaxed italic">
+                                "Click 'Begin Question Engine' to start your structured session."
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Candidate Voice & Transcript Control Panel -->
+                    <div class="lg:col-span-5 flex flex-col gap-4">
+                        
+                        <!-- Transcript Stream Card -->
+                        <div class="glass-panel p-5 rounded-2xl border border-slate-800 flex-1 flex flex-col min-h-[280px]">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                                <h4 class="font-semibold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                                    <i class="fa-solid fa-align-left text-cyan-400"></i>
+                                    Live Dialogue Transcript
+                                </h4>
+                                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded" id="questionProgressCounter">Question 0/0</span>
+                            </div>
+
+                            <!-- Scrollable Transcript Box -->
+                            <div id="transcriptContainer" class="flex-1 overflow-y-auto space-y-3 pr-2 text-xs max-h-[220px]">
+                                <div class="text-slate-500 text-center py-6 italic">
+                                    Interview dialogue will appear here live...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Input Controls Panel -->
+                        <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+                            
+                            <!-- Voice / Speech Recognition Main Control Button -->
+                            <div class="flex items-center justify-between gap-3">
+                                <button id="micToggleBtn" onclick="toggleSpeechRecognition()" class="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium text-xs sm:text-sm rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-microphone text-base" id="micIcon"></i>
+                                    <span id="micBtnText">Click to Speak Answer</span>
+                                </button>
+                                
+                                <button onclick="clearCandidateInput()" title="Clear Response Input" class="p-3 bg-navy-900 hover:bg-slate-800 border border-slate-700 text-slate-400 hover:text-white rounded-xl transition-colors">
+                                    <i class="fa-solid fa-eraser"></i>
+                                </button>
+                            </div>
+
+                            <!-- Real-time Candidate Text Fallback Area -->
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between text-[11px] text-slate-400">
+                                    <label for="candidateResponseInput" class="font-medium">Candidate Answer Box (Speech or Typing):</label>
+                                    <span id="wordCountBadge" class="text-[10px] text-slate-500">0 words</span>
+                                </div>
+                                <textarea id="candidateResponseInput" rows="3" placeholder="Speak into mic or type your response manually here..." class="w-full bg-navy-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors resize-none"></textarea>
+                            </div>
+
+                            <!-- Next Question & Manual Navigation -->
+                            <div class="flex items-center justify-between gap-3 pt-1">
+                                <button onclick="skipOrNextQuestion(true)" class="text-xs text-slate-400 hover:text-slate-200 transition-colors">
+                                    Skip / Pass
+                                </button>
+                                <button id="submitAnswerBtn" onclick="submitCandidateAnswer()" class="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium text-xs sm:text-sm rounded-xl transition-all shadow-md shadow-cyan-500/20 flex items-center gap-2">
+                                    <span>Submit & Next Question</span>
+                                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- CANDIDATE SCREEN 3: COMPLETION / CLOSING -->
+            <div id="candidateClosingScreen" class="hidden max-w-xl mx-auto glass-panel p-8 rounded-2xl border border-slate-800 text-center space-y-6 shadow-2xl">
+                <div class="w-20 h-20 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-3xl shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold text-white mb-2">Mock Interview Completed!</h2>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Thank you for completing your mock recruitment session with Alex Morgan. Your answers have been processed and analyzed.
+                    </p>
+                </div>
+
+                <div class="bg-navy-900/80 p-4 rounded-xl border border-slate-800 text-left space-y-2 text-xs">
+                    <div class="flex justify-between border-b border-slate-800 pb-2">
+                        <span class="text-slate-400">Position Role:</span>
+                        <span id="closeRoleText" class="font-semibold text-slate-200">Software Developer</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-800 pb-2">
+                        <span class="text-slate-400">Questions Answered:</span>
+                        <span id="closeQuestionsCountText" class="font-semibold text-cyan-400">5 / 5</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Status:</span>
+                        <span class="font-semibold text-emerald-400">Report Sent to Admin Dashboard</span>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="switchView('admin')" class="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium text-sm rounded-xl transition-all shadow-lg shadow-cyan-500/20">
+                        Return to Admin Dashboard to View Evaluation
+                    </button>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- MODALS SECTION                             -->
+    <!-- ========================================== -->
+
+    <!-- MODAL 1: SCHEDULE MOCK INTERVIEW MODAL -->
+    <div id="scheduleModal" class="fixed inset-0 bg-navy-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-lg w-full rounded-2xl border border-slate-800 p-6 space-y-5 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-semibold text-lg text-white flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-plus text-cyan-400"></i>
+                    Schedule Mock Interview
+                </h3>
+                <button onclick="closeScheduleModal()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="scheduleForm" onsubmit="handleScheduleSubmit(event)" class="space-y-4 text-xs">
+                <div>
+                    <label for="schedCandidateName" class="block font-medium text-slate-300 mb-1">Candidate Full Name *</label>
+                    <input type="text" id="schedCandidateName" required placeholder="e.g. Priya Sharma" class="w-full bg-navy-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                </div>
+
+                <div>
+                    <label for="schedCandidateEmail" class="block font-medium text-slate-300 mb-1">Candidate Email *</label>
+                    <input type="email" id="schedCandidateEmail" required placeholder="priya.sharma@example.com" class="w-full bg-navy-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                </div>
+
+                <div>
+                    <label for="schedJobRole" class="block font-medium text-slate-300 mb-1">Job Role / Position *</label>
+                    <select id="schedJobRole" required class="w-full bg-navy-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                        <option value="Java Developer">Java Developer</option>
+                        <option value="Software Developer">Software Developer</option>
+                        <option value="Data Analyst">Data Analyst</option>
+                        <option value="Web Developer" selected>Web Developer</option>
+                        <option value="HR Manager">HR Manager / Recruiter</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="schedDate" class="block font-medium text-slate-300 mb-1">Interview Date *</label>
+                        <input type="date" id="schedDate" required class="w-full bg-navy-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                    </div>
+                    <div>
+                        <label for="schedStartTime" class="block font-medium text-slate-300 mb-1">Start Time (IST) *</label>
+                        <input type="time" id="schedStartTime" value="08:00" required class="w-full bg-navy-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="schedDuration" class="block font-medium text-slate-300 mb-1">Duration (Hours)</label>
+                        <input type="number" id="schedDuration" value="3" min="1" max="8" class="w-full bg-navy-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                    </div>
+                    <div>
+                        <label for="schedTimezone" class="block font-medium text-slate-300 mb-1">Time Zone</label>
+                        <input type="text" id="schedTimezone" value="Asia/Kolkata (IST)" readonly class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-400 cursor-not-allowed">
+                    </div>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-800">
+                    <button type="button" onclick="closeScheduleModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium rounded-xl shadow-lg shadow-cyan-500/20">Generate Link & Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: EMAIL INVITATION GENERATOR MODAL -->
+    <div id="emailModal" class="fixed inset-0 bg-navy-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-2xl w-full rounded-2xl border border-slate-800 p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-semibold text-lg text-white flex items-center gap-2">
+                    <i class="fa-solid fa-envelope text-cyan-400"></i>
+                    Candidate Email Invitation
+                </h3>
+                <button onclick="closeEmailModal()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-400">
+                Copy the pre-formatted email invitation text below to send to your candidate via your email application:
+            </p>
+
+            <textarea id="emailTemplateText" rows="10" readonly class="w-full bg-navy-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-200 font-mono leading-relaxed focus:outline-none resize-none"></textarea>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
+                <button onclick="copyCandidateLinkFromModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-medium rounded-xl border border-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-link"></i> Copy Magic Link Only
+                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="closeEmailModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl">Close</button>
+                    <button onclick="copyEmailText()" class="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium rounded-xl flex items-center gap-2 shadow-lg shadow-cyan-600/20">
+                        <i class="fa-solid fa-copy"></i> Copy Complete Email Text
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: EVALUATION REPORT & TRANSCRIPT MODAL -->
+    <div id="reportModal" class="fixed inset-0 bg-navy-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel max-w-3xl w-full rounded-2xl border border-slate-800 p-6 space-y-6 shadow-2xl my-8">
+            
+            <!-- Header with Actions -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4 no-print">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-white">Candidate Practice Assessment Report</h3>
+                        <p class="text-xs text-slate-400">Detailed transcript analysis and keyword matching scores</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.print()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-xl border border-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-print"></i> Print / PDF
+                    </button>
+                    <button onclick="closeReportModal()" class="text-slate-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Printable Report Body Container -->
+            <div id="reportModalBody" class="space-y-6 text-xs text-slate-200">
+                <!-- Content injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT ENGINE & LOGIC                  -->
+    <!-- ========================================== -->
+    <script>
+        /* ==========================================================================
+           1. QUESTION DATABASE & ROLE SPECIFIC CONTENT
+           ========================================================================== */
+        const QUESTION_BANK = {
+            "Java Developer": [
+                { stage: "Introduction", question: "Hello and welcome to Nexora Portal! Please introduce yourself and highlight your experience with Java development." },
+                { stage: "HR & Behavioral", question: "Describe a challenging situation in a past software project and how you resolved it." },
+                { stage: "Technical", question: "Explain the core difference between HashMap and ConcurrentHashMap in Java multithreading." },
+                { stage: "Problem Solving", question: "How would you design a memory-efficient algorithm to detect deadlocks in a Java application?" },
+                { stage: "Closing", question: "Thank you! Do you have any questions for us regarding the technical architecture or team setup?" }
+            ],
+            "Software Developer": [
+                { stage: "Introduction", question: "Welcome! Could you give us a brief introduction of your software engineering background and key technical skills?" },
+                { stage: "HR & Behavioral", question: "How do you handle tight project deadlines or sudden changes in application requirements?" },
+                { stage: "Technical", question: "What are SOLID principles in object-oriented design, and why are they essential for maintainability?" },
+                { stage: "Problem Solving", question: "Walk me through how you would optimize a slow database query in a high-traffic system." },
+                { stage: "Closing", question: "Great job! Do you have any questions regarding our development stack or engineering culture?" }
+            ],
+            "Data Analyst": [
+                { stage: "Introduction", question: "Hello! Please introduce yourself and describe your experience with data analysis, SQL, and data visualization." },
+                { stage: "HR & Behavioral", question: "How do you communicate complex analytical findings to non-technical business stakeholders?" },
+                { stage: "Technical", question: "What is the difference between INNER JOIN, LEFT JOIN, and FULL OUTER JOIN in SQL?" },
+                { stage: "Problem Solving", question: "If you detect missing or corrupted data in a primary dataset before an executive review, how do you handle it?" },
+                { stage: "Closing", question: "Thanks! Do you have any questions for us about our data pipeline or analytical tools?" }
+            ],
+            "Web Developer": [
+                { stage: "Introduction", question: "Hello and welcome! Please introduce yourself and summarize your experience with frontend and web technologies." },
+                { stage: "HR & Behavioral", question: "Tell me about a web application project where you had to collaborate closely with UI/UX designers." },
+                { stage: "Technical", question: "Explain how the Event Loop works in JavaScript and the difference between microtasks and macrotasks." },
+                { stage: "Problem Solving", question: "How would you diagnose and fix a critical layout shift or slow rendering performance on a mobile website?" },
+                { stage: "Closing", question: "Thank you! What questions do you have for us regarding our web architecture or performance standards?" }
+            ],
+            "HR Manager": [
+                { stage: "Introduction", question: "Welcome to Nexora! Please introduce yourself and describe your background in human resources and talent acquisition." },
+                { stage: "HR & Behavioral", question: "How do you manage workplace conflict between senior team members while maintaining positive morale?" },
+                { stage: "Technical", question: "What key metrics do you track to evaluate employee retention and recruitment pipeline effectiveness?" },
+                { stage: "Problem Solving", question: "How would you structure a competitive onboarding program for remote software engineers?" },
+                { stage: "Closing", question: "Wonderful! Do you have any questions for us about our company culture or HR strategies?" }
+            ]
+        };
+
+        const KEYWORDS_DB = ["java", "javascript", "react", "sql", "design", "team", "project", "problem", "solution", "async", "database", "api", "git", "leader", "agile", "code", "architecture", "data", "communication"];
+
+        /* ==========================================================================
+           2. GLOBAL STATE & LOCAL STORAGE INITIALIZATION
+           ========================================================================== */
+        let interviews = [];
+        let activeInterviewId = null;
+        let currentQuestionIndex = 0;
+        let recognition = null;
+        let isRecognizing = false;
+        let isSpeaking = false;
+        let sessionTimerInterval = null;
+        let sessionSeconds = 0;
+        let showCaptions = true;
+
+        // Sample initial seed data
+        const DEMO_INTERVIEWS = [
+            {
+                id: "NEX-1001",
+                candidateName: "Priya Sharma",
+                candidateEmail: "priya.sharma@example.com",
+                jobRole: "Web Developer",
+                date: new Date().toISOString().split('T')[0],
+                startTime: "08:00",
+                duration: 3,
+                timezone: "Asia/Kolkata (IST)",
+                status: "Completed",
+                transcript: [
+                    { speaker: "Interviewer", text: "Hello and welcome! Please introduce yourself and summarize your experience with frontend and web technologies." },
+                    { speaker: "Candidate", text: "Hi! I have over 3 years of experience as a Web Developer specializing in JavaScript, modern HTML5, CSS layout, and REST API integrations." },
+                    { speaker: "Interviewer", text: "Explain how the Event Loop works in JavaScript and the difference between microtasks and macrotasks." },
+                    { speaker: "Candidate", text: "The event loop manages execution of code, call stack, and task queues. Promises go into microtask queue which runs before macrotasks like setTimeout." }
+                ],
+                scoreData: {
+                    overallScore: 88,
+                    completeness: 90,
+                    communication: 85,
+                    keywordMatch: 89,
+                    strengths: ["Clear explanation of JavaScript event loop", "Articulate communication tone", "Solid understanding of async queues"],
+                    improvements: ["Could provide more concrete architectural project examples"],
+                    practiceTopics: ["CSS Grid layout patterns", "Advanced Web API performance optimization"]
+                }
+            },
+            {
+                id: "NEX-1002",
+                candidateName: "Rohan Verma",
+                candidateEmail: "rohan.v@example.com",
+                jobRole: "Java Developer",
+                date: new Date().toISOString().split('T')[0],
+                startTime: "08:00",
+                duration: 3,
+                timezone: "Asia/Kolkata (IST)",
+                status: "Scheduled",
+                transcript: [],
+                scoreData: null
+            }
+        ];
+
+        /* Initialize LocalStorage */
+        function loadStorage() {
+            const stored = localStorage.getItem("nexora_interviews");
+            if (stored) {
+                try {
+                    interviews = JSON.parse(stored);
+                } catch (e) {
+                    interviews = [...DEMO_INTERVIEWS];
+                }
+            } else {
+                interviews = [...DEMO_INTERVIEWS];
+                saveStorage();
+            }
+        }
+
+        function saveStorage() {
+            localStorage.setItem("nexora_interviews", JSON.stringify(interviews));
+        }
+
+        function resetDemoData() {
+            interviews = [...DEMO_INTERVIEWS];
+            saveStorage();
+            renderAdminTable();
+            alert("Demo data has been reset successfully!");
+        }
+
+        /* ==========================================================================
+           3. VIEW SWITCHER & NAVIGATION
+           ========================================================================== */
+        function switchView(viewName) {
+            const adminView = document.getElementById("adminView");
+            const candidateView = document.getElementById("candidateView");
+            const navAdminBtn = document.getElementById("navAdminBtn");
+            const navCandidateBtn = document.getElementById("navCandidateBtn");
+
+            if (viewName === 'admin') {
+                adminView.classList.remove("hidden");
+                candidateView.classList.add("hidden");
+                
+                navAdminBtn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 bg-cyan-600 text-white shadow-md";
+                navCandidateBtn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 text-slate-400 hover:text-white";
+                renderAdminTable();
+            } else {
+                adminView.classList.add("hidden");
+                candidateView.classList.remove("hidden");
+                
+                navCandidateBtn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 bg-cyan-600 text-white shadow-md";
+                navAdminBtn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 text-slate-400 hover:text-white";
+                
+                // If no active interview selected, auto load first scheduled
+                if (!activeInterviewId && interviews.length > 0) {
+                    activeInterviewId = interviews[0].id;
+                }
+                setupCandidateWelcomeScreen();
+            }
+        }
+
+        /* ==========================================================================
+           4. ADMIN DASHBOARD LOGIC & TABLE
+           ========================================================================== */
+        function renderAdminTable() {
+            const tbody = document.getElementById("interviewsTableBody");
+            const emptyState = document.getElementById("emptyTableState");
+            const query = document.getElementById("searchInput").value.toLowerCase();
+
+            tbody.innerHTML = "";
+
+            const filtered = interviews.filter(item => 
+                item.candidateName.toLowerCase().includes(query) ||
+                item.jobRole.toLowerCase().includes(query) ||
+                item.id.toLowerCase().includes(query)
+            );
+
+            // Update stats
+            document.getElementById("statTotal").innerText = interviews.length;
+            document.getElementById("statInProgress").innerText = interviews.filter(i => i.status === "In Progress").length;
+            document.getElementById("statCompleted").innerText = interviews.filter(i => i.status === "Completed").length;
+            
+            const completedWithScores = interviews.filter(i => i.scoreData && i.scoreData.overallScore);
+            if (completedWithScores.length > 0) {
+                const avg = Math.round(completedWithScores.reduce((acc, curr) => acc + curr.scoreData.overallScore, 0) / completedWithScores.length);
+                document.getElementById("statAvgScore").innerText = `${avg}/100`;
+            } else {
+                document.getElementById("statAvgScore").innerText = "N/A";
+            }
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove("hidden");
+                return;
+            } else {
+                emptyState.classList.add("hidden");
+            }
+
+            filtered.forEach(item => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-800/40 transition-colors";
+
+                let statusBadgeClass = "bg-slate-800 text-slate-300 border-slate-700";
+                if (item.status === "Scheduled") statusBadgeClass = "bg-cyan-500/10 text-cyan-400 border-cyan-500/30";
+                if (item.status === "In Progress") statusBadgeClass = "bg-amber-500/10 text-amber-400 border-amber-500/30 animate-pulse";
+                if (item.status === "Completed") statusBadgeClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+
+                const scoreDisplay = item.scoreData ? `<span class="font-bold text-cyan-400">${item.scoreData.overallScore}</span>/100` : `<span class="text-slate-500">Pending</span>`;
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4">
+                        <div class="font-semibold text-white">${item.candidateName}</div>
+                        <div class="text-[11px] text-slate-400">${item.candidateEmail} &bull; <span class="text-cyan-500 font-mono">${item.id}</span></div>
+                    </td>
+                    <td class="py-3.5 px-4 text-slate-300">${item.jobRole}</td>
+                    <td class="py-3.5 px-4 text-slate-300">
+                        <div>${item.date}</div>
+                        <div class="text-[11px] text-slate-500">${item.startTime} IST (${item.duration} hrs)</div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-medium border ${statusBadgeClass}">
+                            ${item.status}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-4 font-mono">${scoreDisplay}</td>
+                    <td class="py-3.5 px-4 text-right">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button onclick="launchCandidateRoom('${item.id}')" title="Launch Candidate Interview Room" class="p-2 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg transition-all border border-cyan-500/30">
+                                <i class="fa-solid fa-play text-xs"></i>
+                            </button>
+                            <button onclick="openEmailModal('${item.id}')" title="Generate Invitation Email" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors border border-slate-700">
+                                <i class="fa-solid fa-envelope text-xs"></i>
+                            </button>
+                            <button onclick="copyCandidateMagicLink('${item.id}')" title="Copy Magic Link" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors border border-slate-700">
+                                <i class="fa-solid fa-link text-xs"></i>
+                            </button>
+                            ${item.status === 'Completed' ? `
+                                <button onclick="openReportModal('${item.id}')" title="View Candidate Report" class="p-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-lg transition-all border border-emerald-500/30">
+                                    <i class="fa-solid fa-chart-pie text-xs"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        /* Schedule Form Modal Functions */
+        function openScheduleModal() {
+            document.getElementById("schedDate").value = new Date().toISOString().split('T')[0];
+            document.getElementById("scheduleModal").classList.remove("hidden");
+        }
+
+        function closeScheduleModal() {
+            document.getElementById("scheduleModal").classList.add("hidden");
+        }
+
+        function handleScheduleSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById("schedCandidateName").value;
+            const email = document.getElementById("schedCandidateEmail").value;
+            const role = document.getElementById("schedJobRole").value;
+            const date = document.getElementById("schedDate").value;
+            const startTime = document.getElementById("schedStartTime").value;
+            const duration = parseInt(document.getElementById("schedDuration").value) || 3;
+
+            const newId = `NEX-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            const newItem = {
+                id: newId,
+                candidateName: name,
+                candidateEmail: email,
+                jobRole: role,
+                date: date,
+                startTime: startTime,
+                duration: duration,
+                timezone: "Asia/Kolkata (IST)",
+                status: "Scheduled",
+                transcript: [],
+                scoreData: null
+            };
+
+            interviews.unshift(newItem);
+            saveStorage();
+            closeScheduleModal();
+            renderAdminTable();
+            openEmailModal(newId);
+        }
+
+        /* Email Modal Functions */
+        let activeEmailId = null;
+        function openEmailModal(id) {
+            activeEmailId = id;
+            const item = interviews.find(i => i.id === id);
+            if (!item) return;
+
+            const link = `${window.location.origin}${window.location.pathname}?interviewId=${item.id}`;
+            const template = `Subject: Mock Interview Invitation — ${item.jobRole} (${item.candidateName})
+
+Dear ${item.candidateName},
+
+You are invited to complete your mock practice recruitment interview with our AI Interviewer, Alex Morgan, for the position of ${item.jobRole}.
+
+INTERVIEW DETAILS:
+----------------------------------------------
+Candidate ID: ${item.id}
+Job Position: ${item.jobRole}
+Scheduled Date: ${item.date}
+Scheduled Start: ${item.startTime} IST
+Duration Window: ${item.duration} Hours
+Timezone: ${item.timezone}
+
+YOUR EXCLUSIVE INTERVIEW LINK:
+${link}
+
+INSTRUCTIONS & PREPARATION:
+1. Ensure you are in a quiet, well-lit environment.
+2. Grant browser microphone permission when prompted.
+3. Keep an desktop or mobile device ready with Google Chrome or Microsoft Edge for best speech recognition support.
+
+Note: This is a structured mock practice interview powered by Nexora Portal.
+
+Best regards,
+Nexora Recruitment Team`;
+
+            document.getElementById("emailTemplateText").value = template;
+            document.getElementById("emailModal").classList.remove("hidden");
+        }
+
+        function closeEmailModal() {
+            document.getElementById("emailModal").classList.add("hidden");
+        }
+
+        function copyEmailText() {
+            const textarea = document.getElementById("emailTemplateText");
+            textarea.select();
+            document.execCommand("copy");
+            alert("Email template copied to clipboard!");
+        }
+
+        function copyCandidateMagicLink(id) {
+            const item = interviews.find(i => i.id === id);
+            const link = `${window.location.origin}${window.location.pathname}?interviewId=${item ? item.id : id}`;
+            const dummy = document.createElement("input");
+            document.body.appendChild(dummy);
+            dummy.value = link;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+            alert("Candidate Interview link copied to clipboard!");
+        }
+
+        function copyCandidateLinkFromModal() {
+            if (activeEmailId) copyCandidateMagicLink(activeEmailId);
+        }
+
+        /* ==========================================================================
+           5. CANDIDATE INTERVIEW ROOM LOGIC & ENGINE
+           ========================================================================== */
+        function launchCandidateRoom(id) {
+            activeInterviewId = id;
+            switchView('candidate');
+        }
+
+        function setupCandidateWelcomeScreen() {
+            const item = interviews.find(i => i.id === activeInterviewId);
+            if (!item) return;
+
+            document.getElementById("welcomeCandidateName").innerText = `Welcome, ${item.candidateName}`;
+            document.getElementById("welcomeJobRole").innerText = `Position: ${item.jobRole}`;
+            document.getElementById("welcomeScheduleTime").innerText = `Scheduled: ${item.date} (${item.startTime} IST, ${item.duration} hrs)`;
+
+            document.getElementById("candidateWelcomeScreen").classList.remove("hidden");
+            document.getElementById("candidateLiveRoom").classList.add("hidden");
+            document.getElementById("candidateClosingScreen").classList.add("hidden");
+        }
+
+        /* Mic Hardware Test */
+        function testMicrophone() {
+            const badge = document.getElementById("micStatusBadge");
+            const result = document.getElementById("micTestResultText");
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30";
+                badge.innerText = "Speech Speech API Unsupported";
+                result.innerText = "Speech recognition API not supported in this browser. Text fallback input box will be used.";
+                return;
+            }
+
+            try {
+                const testRec = new SpeechRecognition();
+                testRec.onstart = () => {
+                    badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                    badge.innerText = "Mic Active & Permitted";
+                    result.innerText = "Microphone permission granted successfully!";
+                    testRec.stop();
+                };
+                testRec.onerror = () => {
+                    badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30";
+                    badge.innerText = "Permission Denied / Error";
+                    result.innerText = "Mic access blocked. You can still type responses using the text input.";
+                };
+                testRec.start();
+            } catch (e) {
+                badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30";
+                badge.innerText = "Manual Mode Only";
+                result.innerText = "Speech API initialized. Ready for candidate room.";
+            }
+        }
+
+        /* Enter Room */
+        function enterInterviewRoom() {
+            const item = interviews.find(i => i.id === activeInterviewId);
+            if (!item) return;
+
+            item.status = "In Progress";
+            saveStorage();
+
+            document.getElementById("candidateWelcomeScreen").classList.add("hidden");
+            document.getElementById("candidateLiveRoom").classList.remove("hidden");
+            document.getElementById("liveCandidateHeaderName").innerText = item.candidateName;
+
+            // Reset engine state
+            currentQuestionIndex = 0;
+            item.transcript = [];
+            startTimer();
+
+            // Initialize Speech Recognition
+            initSpeechRecognition();
+
+            // Start First Question
+            speakCurrentQuestion();
+        }
+
+        /* Timer Handler */
+        function startTimer() {
+            clearInterval(sessionTimerInterval);
+            sessionSeconds = 0;
+            const timerText = document.getElementById("sessionTimerText");
+            sessionTimerInterval = setInterval(() => {
+                sessionSeconds++;
+                const mins = String(Math.floor(sessionSeconds / 60)).padStart(2, '0');
+                const secs = String(sessionSeconds % 60).padStart(2, '0');
+                timerText.innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(sessionTimerInterval);
+        }
+
+        /* Speech Synthesis (Alex Morgan Speaking Logic) */
+        function speakText(text, onCompleteCallback) {
+            if (!('speechSynthesis' in window)) {
+                if (onCompleteCallback) onCompleteCallback();
+                return;
+            }
+
+            window.speechSynthesis.cancel(); // clear previous queue
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.95;
+            utterance.pitch = 1.0;
+            
+            // Try to set professional voice if available
+            const voices = window.speechSynthesis.getVoices();
+            const prefVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')));
+            if (prefVoice) utterance.voice = prefVoice;
+
+            setAvatarState('speaking');
+
+            utterance.onend = () => {
+                setAvatarState('listening');
+                if (onCompleteCallback) onCompleteCallback();
+            };
+
+            utterance.onerror = () => {
+                setAvatarState('idle');
+                if (onCompleteCallback) onCompleteCallback();
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        /* Avatar Visual State Handler */
+        function setAvatarState(state) {
+            const avatarContainer = document.getElementById("avatarContainer");
+            const speakingRing = document.getElementById("speakingRing");
+            const audioWave = document.getElementById("audioWaveContainer");
+            const statusText = document.getElementById("interviewerStatusText");
+            const mouth = document.getElementById("avatarMouth");
+
+            if (state === 'speaking') {
+                avatarContainer.className = "w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-slate-900 border-4 border-cyan-400 p-2 relative shadow-2xl avatar-speaking";
+                speakingRing.classList.remove("hidden");
+                audioWave.classList.add("wave-active");
+                audioWave.style.opacity = "1";
+                statusText.innerText = "Alex Morgan is speaking...";
+                statusText.className = "text-xs text-cyan-400 font-medium mt-1 bg-navy-900/90 px-3 py-1 rounded-full border border-cyan-500/30";
+                if (mouth) mouth.setAttribute("d", "M43 47 Q 50 54 57 47");
+            } else if (state === 'listening') {
+                avatarContainer.className = "w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-slate-900 border-4 border-emerald-500 p-2 relative shadow-2xl avatar-listening";
+                speakingRing.classList.add("hidden");
+                audioWave.classList.remove("wave-active");
+                audioWave.style.opacity = "0.5";
+                statusText.innerText = "Listening to your response...";
+                statusText.className = "text-xs text-emerald-400 font-medium mt-1 bg-navy-900/90 px-3 py-1 rounded-full border border-emerald-500/30";
+                if (mouth) mouth.setAttribute("d", "M43 47 Q 50 49 57 47");
+            } else {
+                avatarContainer.className = "w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-slate-900 border-4 border-slate-700 p-2 relative shadow-2xl";
+                speakingRing.classList.add("hidden");
+                audioWave.classList.remove("wave-active");
+                audioWave.style.opacity = "0.3";
+                statusText.innerText = "Alex Morgan is ready...";
+                statusText.className = "text-xs text-slate-400 font-medium mt-1 bg-navy-900/90 px-3 py-1 rounded-full border border-slate-700";
+                if (mouth) mouth.setAttribute("d", "M43 47 Q 50 48 57 47");
+            }
+        }
+
+        /* Render Current Question Stage */
+        function speakCurrentQuestion() {
+            const item = interviews.find(i => i.id === activeInterviewId);
+            if (!item) return;
+
+            const questions = QUESTION_BANK[item.jobRole] || QUESTION_BANK["Software Developer"];
+            if (currentQuestionIndex >= questions.length) {
+                finishInterview();
+                return;
+            }
+
+            const currentObj = questions[currentQuestionIndex];
+            
+            // Highlight stage badges
+            for (let i = 1; i <= 5; i++) {
+                const badge = document.getElementById(`stageBadge${i}`);
+                if (i === currentQuestionIndex + 1) {
+                    badge.className = "px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-medium";
+                } else if (i < currentQuestionIndex + 1) {
+                    badge.className = "px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20";
+                } else {
+                    badge.className = "px-2.5 py-1 rounded-lg bg-slate-800 text-slate-500 font-medium";
+                }
+            }
+
+            document.getElementById("currentQuestionText").innerText = `"${currentObj.question}"`;
+            document.getElementById("questionProgressCounter").innerText = `Question ${currentQuestionIndex + 1}/${questions.length}`;
+
+            // Add interviewer question to transcript
+            addTranscriptEntry("Interviewer", currentObj.question);
+
+            // Speak question aloud
+            speakText(currentObj.question, () => {
+                // Auto start mic recognition after interviewer finishes speaking if supported
+                startSpeechRecognition();
+            });
+        }
+
+        function repeatCurrentQuestion() {
+            const item = interviews.find(i => i.id === activeInterviewId);
+            if (!item) return;
+            const questions = QUESTION_BANK[item.jobRole] || QUESTION_BANK["Software Developer"];
+            if (questions[currentQuestionIndex]) {
+                speakText(questions[currentQuestionIndex].question);
+            }
+        }
+
+        /* Web Speech Recognition Logic */
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return;
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isRecognizing = true;
+                updateMicBtnUI(true);
+            };
+
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    }
+                }
+                if (finalTranscript) {
+                    const input = document.getElementById("candidateResponseInput");
+                    input.value = (input.value + " " + finalTranscript).trim();
+                    updateWordCount();
+                }
+            };
+
+            recognition.onerror = (e) => {
+                isRecognizing = false;
+                updateMicBtnUI(false);
+            };
+
+            recognition.onend = () => {
+                isRecognizing = false;
+                updateMicBtnUI(false);
+            };
+        }
+
+        function startSpeechRecognition() {
+            if (recognition && !isRecognizing) {
+                try {
+                    recognition.start();
+                } catch(e){}
+            }
+        }
+
+        function toggleSpeechRecognition() {
+            if (!recognition) {
+                alert("Speech recognition API is not available in your browser. Please type your response in the box below.");
+                return;
+            }
+            if (isRecognizing) {
+                recognition.stop();
+            } else {
+                startSpeechRecognition();
+            }
+        }
+
+        function updateMicBtnUI(active) {
+            const btn = document.getElementById("micToggleBtn");
+            const btnText = document.getElementById("micBtnText");
+            const icon = document.getElementById("micIcon");
+
+            if (active) {
+                btn.className = "flex-1 py-3 px-4 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-medium text-xs sm:text-sm rounded-xl transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2 animate-pulse";
+                btnText.innerText = "Listening... Click to Pause";
+                icon.className = "fa-solid fa-microphone-lines text-base";
+            } else {
+                btn.className = "flex-1 py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium text-xs sm:text-sm rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2";
+                btnText.innerText = "Click to Speak Answer";
+                icon.className = "fa-solid fa-microphone text-base";
+            }
+        }
+
+        function clearCandidateInput() {
+            document.getElementById("candidateResponseInput").value = "";
+            updateWordCount();
+        }
+
+        function updateWordCount() {
+            const val = document.getElementById("candidateResponseInput").value.trim();
+            const words = val ? val.split(/\s+/).length : 0;
+            document.getElementById("wordCountBadge").innerText = `${words} words`;
+        }
+
+        document.getElementById("candidateResponseInput").addEventListener("input", updateWordCount);
+
+        function addTranscriptEntry(speaker, text) {
+            const container = document.getElementById("transcriptContainer");
+            if (container.children.length === 1 && container.children[0].classList.contains("italic")) {
+                container.innerHTML = "";
+            }
+
+            const div = document.createElement("div");
+            div.className = speaker === "Interviewer" ? "bg-navy-900 border border-slate-800 p-2.5 rounded-xl space-y-1" : "bg-cyan-950/40 border border-cyan-500/20 p-2.5 rounded-xl space-y-1 text-right";
+
+            div.innerHTML = `
+                <div class="text-[10px] font-semibold ${speaker === 'Interviewer' ? 'text-cyan-400' : 'text-emerald-400'} uppercase tracking-wider">
+                    ${speaker}
+                </div>
+                <div class="text-slate-200 leading-normal">${text}</div>
+            `;
+
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+
+            // Also persist in active item
+            const item = interviews.find(i => i.id === activeInterviewId);
+            if (item) {
+                item.transcript.push({ speaker, text });
+                saveStorage();
+            }
+        }
+
+        /* Answer Submission */
+        function submitCandidateAnswer() {
+            if (isRecognizing && recognition) {
+                recognition.stop();
+            }
+
+            const input = document.getElementById("candidateResponseInput");
+            const answerText = input.value.trim() || "(No verbal or written response provided)";
+
+            // Record candidate answer
+            addTranscriptEntry("Candidate", answerText);
+            input.value = "";
+            updateWordCount();
+
+            // Next question step
+            currentQuestionIndex++;
+            speakCurrentQuestion();
+        }
+
+        function skipOrNextQuestion(confirmSkip) {
+            submitCandidateAnswer();
+        }
+
+        function toggleCaptions() {
+            showCaptions = !showCaptions;
+            document.getElementById("captionBox").style.display = showCaptions ? "block" : "none";
+            document.getElementById("captionsBtnText").innerText = `Captions: ${showCaptions ? 'ON' : 'OFF'}`;
+        }
+
+        function confirmEndInterview() {
+            if (confirm("Are you sure you want to conclude this interview session?")) {
+                finishInterview();
+            }
+        }
+
+        /* ==========================================================================
+           6. AUTOMATED PROTOTYPE SCORING & REPORT GENERATOR
+           ========================================================================== */
+        function finishInterview() {
+            stopTimer();
+            if (recognition && isRecognizing) recognition.stop();
+            window.speechSynthesis.cancel();
+            setAvatarState('idle');
+
+            const item = interviews.find(i => i.id === activeInterviewId);
+            if (!item) return;
+
+            item.status = "Completed";
+
+            // Calculate prototype practice score
+            const scoreData = calculatePrototypeScore(item);
+            item.scoreData = scoreData;
+            saveStorage();
+
+            // UI Screen transition
+            document.getElementById("candidateLiveRoom").classList.add("hidden");
+            document.getElementById("candidateClosingScreen").classList.remove("hidden");
+            document.getElementById("closeRoleText").innerText = item.jobRole;
+            document.getElementById("closeQuestionsCountText").innerText = `${item.transcript.filter(t => t.speaker === 'Candidate').length} Answers Submitted`;
+        }
+
+        function calculatePrototypeScore(item) {
+            const candidateAnswers = item.transcript.filter(t => t.speaker === 'Candidate');
+            if (candidateAnswers.length === 0) {
+                return {
+                    overallScore: 40,
+                    completeness: 30,
+                    communication: 40,
+                    keywordMatch: 50,
+                    strengths: ["Completed the mock interview session"],
+                    improvements: ["Provide more detailed answers to technical questions"],
+                    practiceTopics: ["Core technical fundamentals", "STAR method behavioral answers"]
+                };
+            }
+
+            let totalWords = 0;
+            let matchedKeywordsCount = 0;
+
+            candidateAnswers.forEach(ans => {
+                const text = ans.text.toLowerCase();
+                const words = text.split(/\s+/).length;
+                totalWords += words;
+
+                KEYWORDS_DB.forEach(kw => {
+                    if (text.includes(kw)) matchedKeywordsCount++;
+                });
+            });
+
+            const avgLength = totalWords / candidateAnswers.length;
+
+            // Score metrics
+            let completeness = Math.min(100, Math.round((avgLength / 25) * 100));
+            let keywordMatch = Math.min(100, Math.round((matchedKeywordsCount / (candidateAnswers.length * 2)) * 100));
+            let communication = Math.min(100, Math.round(70 + (candidateAnswers.length * 5)));
+
+            let overallScore = Math.round((completeness * 0.4) + (keywordMatch * 0.3) + (communication * 0.3));
+            overallScore = Math.max(50, Math.min(96, overallScore)); // clamp realistic bounds
+
+            return {
+                overallScore,
+                completeness,
+                communication,
+                keywordMatch,
+                strengths: [
+                    "Maintained consistent engagement during questions",
+                    "Demonstrated good vocabulary alignment with the job description",
+                    "Responded within reasonable time limits"
+                ],
+                improvements: [
+                    "Elaborate with specific architectural examples in technical queries",
+                    "Practice structured answer framing (Situation, Task, Action, Result)"
+                ],
+                practiceTopics: [
+                    `${item.jobRole} deep-dive concepts`,
+                    "System design & problem solving scenarios"
+                ]
+            };
+        }
+
+        /* Report Modal Renderer */
+        function openReportModal(id) {
+            const item = interviews.find(i => i.id === id);
+            if (!item || !item.scoreData) return;
+
+            const modalBody = document.getElementById("reportModalBody");
+            const score = item.scoreData;
+
+            modalBody.innerHTML = `
+                <!-- Disclaimer Banner -->
+                <div class="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl text-[11px] text-amber-300 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-sm shrink-0"></i>
+                    <span><strong>Practice Assessment Notice:</strong> Scores are automatically calculated prototype practice ratings based on length and key terminology matching. They do not constitute an official employment evaluation.</span>
+                </div>
+
+                <!-- Candidate Header Summary -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-navy-900 border border-slate-800 p-4 rounded-xl">
+                    <div>
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Candidate Name</span>
+                        <span class="font-bold text-white text-sm">${item.candidateName}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Job Position</span>
+                        <span class="font-semibold text-cyan-400">${item.jobRole}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Interview ID / Date</span>
+                        <span class="font-mono text-slate-300">${item.id} &bull; ${item.date}</span>
+                    </div>
+                </div>
+
+                <!-- Score Breakdowns -->
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center">
+                    <div class="bg-navy-900 border border-slate-800 p-3 rounded-xl">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Overall Rating</span>
+                        <span class="text-2xl font-bold text-cyan-400">${score.overallScore}/100</span>
+                    </div>
+                    <div class="bg-navy-900 border border-slate-800 p-3 rounded-xl">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Completeness</span>
+                        <span class="text-xl font-bold text-emerald-400">${score.completeness}%</span>
+                    </div>
+                    <div class="bg-navy-900 border border-slate-800 p-3 rounded-xl">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Communication</span>
+                        <span class="text-xl font-bold text-cyan-300">${score.communication}%</span>
+                    </div>
+                    <div class="bg-navy-900 border border-slate-800 p-3 rounded-xl">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Keyword Match</span>
+                        <span class="text-xl font-bold text-amber-400">${score.keywordMatch}%</span>
+                    </div>
+                </div>
+
+                <!-- Strengths & Practice Areas -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-navy-900/80 border border-slate-800 p-4 rounded-xl space-y-2">
+                        <h4 class="font-semibold text-xs text-emerald-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check"></i> Key Strengths
+                        </h4>
+                        <ul class="list-disc list-inside space-y-1 text-slate-300 text-[11px]">
+                            ${score.strengths.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="bg-navy-900/80 border border-slate-800 p-4 rounded-xl space-y-2">
+                        <h4 class="font-semibold text-xs text-amber-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-lightbulb"></i> Recommended Improvements
+                        </h4>
+                        <ul class="list-disc list-inside space-y-1 text-slate-300 text-[11px]">
+                            ${score.improvements.map(i => `<li>${i}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Complete Dialogue Transcript -->
+                <div class="space-y-3">
+                    <h4 class="font-semibold text-xs text-slate-300 uppercase tracking-wider border-b border-slate-800 pb-2">
+                        Interview Question & Response Transcript
+                    </h4>
+                    <div class="space-y-2 max-h-60 overflow-y-auto pr-2">
+                        ${item.transcript.map(t => `
+                            <div class="p-2.5 rounded-lg text-[11px] ${t.speaker === 'Interviewer' ? 'bg-navy-900 border border-slate-800' : 'bg-slate-800/60 border border-slate-700/50'}">
+                                <span class="font-bold ${t.speaker === 'Interviewer' ? 'text-cyan-400' : 'text-emerald-400'} block mb-0.5">${t.speaker}:</span>
+                                <span class="text-slate-200">${t.text}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById("reportModal").classList.remove("hidden");
+        }
+
+        function closeReportModal() {
+            document.getElementById("reportModal").classList.add("hidden");
+        }
+
+        /* ==========================================================================
+           7. APP BOOTSTRAP
+           ========================================================================== */
+        window.onload = function() {
+            loadStorage();
+            
+            // Check for interview ID query params
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryInterviewId = urlParams.get('interviewId');
+
+            if (queryInterviewId) {
+                const found = interviews.find(i => i.id === queryInterviewId);
+                if (found) {
+                    activeInterviewId = found.id;
+                    switchView('candidate');
+                    return;
+                }
+            }
+
+            renderAdminTable();
+        };
+    </script>
+</body>
+</html>
